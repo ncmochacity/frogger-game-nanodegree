@@ -23,11 +23,12 @@ var Engine = (function(global) {
         win = global.window,
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
+        time_countdown,
+        clock,
         lastTime;
-
     canvas.width = 505;
     canvas.height = 606;
-    doc.body.appendChild(canvas);
+    doc.getElementById("game").appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -47,26 +48,61 @@ var Engine = (function(global) {
          */
         update(dt);
         render();
-
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
          */
         lastTime = now;
-
+        statusEntities();
         /* Use the browser's requestAnimationFrame function to call this
          * function again as soon as the browser is able to draw another frame.
          */
-        win.requestAnimationFrame(main);
-    }
+          win.requestAnimationFrame(main);
 
+    }
+    function countDown (duration){
+        clock=doc.getElementById("countdown");
+        time_countdown=duration;
+        if (time_countdown === 0 ){
+          Stopgame=true;
+          this.cancelAnimationFrame(main);
+          reset();
+        }
+        if(!Stopgame){
+          time_countdown--;
+          updateTime();
+          win.setTimeout(function(){
+            countDown(time_countdown);
+          },1000);
+        }
+
+    }
+    function updateTime(){
+      var timeMsg;
+      var updateSeconds = time_countdown;
+      var updateMinutes = Math.floor(time_countdown / 60) % 60;
+      timeMsg = "Time left: " + formattedClock(updateMinutes,updateSeconds);
+      clock.innerHTML=timeMsg;
+    }
     /* This function does some initial setup that should only occur once,
      * particularly setting the lastTime variable that is required for the
      * game loop.
      */
+     function formattedClock(minutes,seconds){
+       var formattedMinutes = (minutes < 10) ? "0" + minutes : minutes;
+       var formattedSeconds = (seconds < 10) ? "0" + seconds : seconds;
+       return formattedMinutes + ":" + formattedSeconds;
+     }
     function init() {
-        reset();
         lastTime = Date.now();
-        main();
+        doc.getElementById("start-game").onclick = function(){
+            main();
+            countDown(60);
+            doc.getElementById("game").style.display = "inline-block";
+            doc.getElementById("restart").style.display = "inline-block";
+            doc.getElementById("start-game").style.display = "none";
+            doc.getElementById("header").style.display = "none";
+         };
+
     }
 
     /* This function is called by main (our game loop) and itself calls all
@@ -80,9 +116,14 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        player.checkCollisions();
     }
-
+    function enemyEntities() {
+      enemy.checkEnemyCollision();
+    }
+    function statusEntities() {
+      player.gameStatus();
+    }
     /* This is called by the update function and loops through all of the
      * objects within your allEnemies array as defined in app.js and calls
      * their update() methods. It will then call the update function for your
@@ -95,6 +136,7 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player.update();
+        gem.update();
     }
 
     /* This function initially draws the "game level", it will then call
@@ -133,6 +175,7 @@ var Engine = (function(global) {
 
 
         renderEntities();
+        enemyEntities();
     }
 
     /* This function is called by the render function and is called on each game
@@ -144,10 +187,12 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
         allEnemies.forEach(function(enemy) {
-            enemy.render();
+          enemy.render();
         });
-
         player.render();
+        gem.render();
+        playerLife.render();
+        playerScore.render();
     }
 
     /* This function does nothing but it could have been a good place to
@@ -155,7 +200,9 @@ var Engine = (function(global) {
      * those sorts of things. It's only called once by the init() method.
      */
     function reset() {
-        // noop
+        doc.getElementById("game").style.display = "none";
+        doc.getElementById("restart").style.display = "inline-block";
+
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -167,19 +214,21 @@ var Engine = (function(global) {
         'images/water-block.png',
         'images/grass-block.png',
         'images/Gem_Blue.png',
+        'images/Gem_Blue_small.png',
         'images/Gem_Green.png',
         'images/Gem_Orange.png',
         'images/Heart.png',
+        'images/Heart_small.png',
         'images/Rock.png',
         'images/Star.png',
+        'images/Key.png',
         'images/enemy-bug.png',
         'images/char-boy.png',
         'images/char-cat-girl.png',
         'images/char-horn-girl.png',
         'images/char-pink-girl.png',
         'images/char-princess-girl.png',
-        'images/vintage.png',
-        'images/wood.png'
+        'images/game-over.jpg'
     ]);
     Resources.onReady(init);
 
@@ -188,4 +237,5 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+    global.reset=reset;
 })(this);
