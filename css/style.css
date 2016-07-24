@@ -1,3 +1,81 @@
+*{
+  margin:0 auto;
+  box-sizing: border-box;
+  padding: 0;
+}
 body {
+    font-family:"Roboto",sans-serif;
     text-align: center;
+    font-size:1em;
+    background-color: #f6f1ed;
+}
+.header-wrapper{
+  background-color: #6ed3cf;
+}
+.heading{
+  font-family:"Montserrat",sans-serif;
+  font-weight:700;
+  font-size:4em;
+  color:#fff;
+}
+.btn{
+  outline:none;
+  display:inline-block;
+  height:40px;
+  width:100px;
+  font-weight:600;
+  font-size:0.8em;
+  letter-spacing: 2px;
+  border-radius: 50px;
+  border:none;
+  background-color: #fff;
+  color:#6ed3cf;
+  position:relative;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.btn .holder{
+  top:0;
+  width:0;
+  left:0;
+  height:100%;
+  position:absolute;
+  overflow: hidden;
+}
+.btn span span{
+  display:inline-block;
+  border-radius:50px;
+  width:100px;
+  height:40px;
+  line-height:40px;
+  letter-spacing:2px;
+  color:#fff;
+  background-color: #6ed3cf;
+}
+#start-game,
+#restart{
+  margin-bottom:20px;
+  margin-top:20px;
+}
+#life{
+  font-weight:100;
+  font-size:2.5em;
+}
+#game{
+  display:none;
+}
+#countdown{
+  font-weight:100;
+  font-size:2.5em;
+  line-height:2em;
+}
+#game-over{
+  font-family:"Montserrat",sans-serif;
+  font-weight:700;
+  font-size:3em;
+  text-transform: uppercase;
+  line-height: 2em;
+}
+#restart{
+  display:none;
 }

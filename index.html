@@ -3,11 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Effective JavaScript: Frogger</title>
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <header class="header-wrapper" id="header">
+    <h1 class="heading">Arcade Frogger Game</h1>
+  </header>
+  <div id="game"></div>
+  <div id="life"></div>
+  <div id="countdown"></div>
+  <h1 id="game-over"></h1>
+  <button class="btn" id="start-game">Start<span class="holder"><span>Start</span></span></button>
+  <button id="restart" class="btn" onClick="history.go(0)">Restart<span class="holder"><span>Restart</span></span></button>
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+  <script src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js'></script>
     <script src="js/resources.js"></script>
     <script src="js/app.js"></script>
     <script src="js/engine.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

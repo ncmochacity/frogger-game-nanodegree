@@ -23,11 +23,12 @@ var Engine = (function(global) {
         win = global.window,
         canvas = doc.createElement('canvas'),
         ctx = canvas.getContext('2d'),
+        time_countdown,
+        clock,
         lastTime;
-
     canvas.width = 505;
     canvas.height = 606;
-    doc.body.appendChild(canvas);
+    doc.getElementById("game").appendChild(canvas);
 
     /* This function serves as the kickoff point for the game loop itself
      * and handles properly calling the update and render methods.
@@ -47,26 +48,61 @@ var Engine = (function(global) {
          */
         update(dt);
         render();
-
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
          */
         lastTime = now;
-
+        statusEntities();
         /* Use the browser's requestAnimationFrame function to call this
          * function again as soon as the browser is able to draw another frame.
          */
-        win.requestAnimationFrame(main);
-    }
+          win.requestAnimationFrame(main);
 
+    }
+    function countDown (duration){
+        clock=doc.getElementById("countdown");
+        time_countdown=duration;
+        if (time_countdown === 0 ){
+          Stopgame=true;
+          this.cancelAnimationFrame(main);
+          reset();
+        }
+        if(!Stopgame){
+          time_countdown--;
+          updateTime();
+          win.setTimeout(function(){
+            countDown(time_countdown);
+          },1000);
+        }
+
+    }
+    function updateTime(){
+      var timeMsg;
+      var updateSeconds = time_countdown;
+      var updateMinutes = Math.floor(time_countdown / 60) % 60;
+      timeMsg = "Time left: " + formattedClock(updateMinutes,updateSeconds);
+      clock.innerHTML=timeMsg;
+    }
     /* This function does some initial setup that should only occur once,
      * particularly setting the lastTime variable that is required for the
      * game loop.
      */
+     function formattedClock(minutes,seconds){
+       var formattedMinutes = (minutes < 10) ? "0" + minutes : minutes;
+       var formattedSeconds = (seconds < 10) ? "0" + seconds : seconds;
+       return formattedMinutes + ":" + formattedSeconds;
+     }
     function init() {
-        reset();
         lastTime = Date.now();
-        main();
+        doc.getElementById("start-game").onclick = function(){
+            main();
+            countDown(60);
+            doc.getElementById("game").style.display = "inline-block";
+            doc.getElementById("restart").style.display = "inline-block";
+            doc.getElementById("start-game").style.display = "none";
+            doc.getElementById("header").style.display = "none";
+         };
+
     }
 
     /* This function is called by main (our game loop) and itself calls all
@@ -80,9 +116,14 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
+        player.checkCollisions();
     }
-
+    function enemyEntities() {
+      enemy.checkEnemyCollision();
+    }
+    function statusEntities() {
+      player.gameStatus();
+    }
     /* This is called by the update function and loops through all of the
      * objects within your allEnemies array as defined in app.js and calls
      * their update() methods. It will then call the update function for your
@@ -95,6 +136,7 @@ var Engine = (function(global) {
             enemy.update(dt);
         });
         player.update();
+        gem.update();
     }
 
     /* This function initially draws the "game level", it will then call
@@ -107,7 +149,8 @@ var Engine = (function(global) {
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
          */
-        var rowImages = [
+
+          var rowImages = [
                 'images/water-block.png',   // Top row is water
                 'images/stone-block.png',   // Row 1 of 3 of stone
                 'images/stone-block.png',   // Row 2 of 3 of stone
@@ -123,20 +166,16 @@ var Engine = (function(global) {
          * and, using the rowImages array, draw the correct image for that
          * portion of the "grid"
          */
-        for (row = 0; row < numRows; row++) {
-            for (col = 0; col < numCols; col++) {
-                /* The drawImage function of the canvas' context element
-                 * requires 3 parameters: the image to draw, the x coordinate
-                 * to start drawing and the y coordinate to start drawing.
-                 * We're using our Resources helpers to refer to our images
-                 * so that we get the benefits of caching these images, since
-                 * we're using them over and over.
-                 */
-                ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
-            }
-        }
+
+         for (row = 0; row < numRows; row++) {
+             for (col = 0; col < numCols; col++) {
+                 ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
+             }
+         }
+
 
         renderEntities();
+        enemyEntities();
     }
 
     /* This function is called by the render function and is called on each game
@@ -148,10 +187,12 @@ var Engine = (function(global) {
          * the render function you have defined.
          */
         allEnemies.forEach(function(enemy) {
-            enemy.render();
+          enemy.render();
         });
-
         player.render();
+        gem.render();
+        playerLife.render();
+        playerScore.render();
     }
 
     /* This function does nothing but it could have been a good place to
@@ -159,7 +200,9 @@ var Engine = (function(global) {
      * those sorts of things. It's only called once by the init() method.
      */
     function reset() {
-        // noop
+        doc.getElementById("game").style.display = "none";
+        doc.getElementById("restart").style.display = "inline-block";
+
     }
 
     /* Go ahead and load all of the images we know we're going to need to
@@ -170,8 +213,22 @@ var Engine = (function(global) {
         'images/stone-block.png',
         'images/water-block.png',
         'images/grass-block.png',
+        'images/Gem_Blue.png',
+        'images/Gem_Blue_small.png',
+        'images/Gem_Green.png',
+        'images/Gem_Orange.png',
+        'images/Heart.png',
+        'images/Heart_small.png',
+        'images/Rock.png',
+        'images/Star.png',
+        'images/Key.png',
         'images/enemy-bug.png',
-        'images/char-boy.png'
+        'images/char-boy.png',
+        'images/char-cat-girl.png',
+        'images/char-horn-girl.png',
+        'images/char-pink-girl.png',
+        'images/char-princess-girl.png',
+        'images/game-over.jpg'
     ]);
     Resources.onReady(init);
 
@@ -180,4 +237,5 @@ var Engine = (function(global) {
      * from within their app.js files.
      */
     global.ctx = ctx;
+    global.reset=reset;
 })(this);
