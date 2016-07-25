@@ -122,7 +122,7 @@ var Engine = (function(global) {
         player.checkCollisions();
     }
     function enemyEntities() {
-      enemy.checkEnemyCollision();
+      checkEnemyCollision();
     }
     function statusEntities() {
       player.gameStatus();

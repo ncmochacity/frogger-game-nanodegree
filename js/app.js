@@ -27,19 +27,16 @@ var DIMENSIONS = {
   }
 };
 var Stopgame = false;
-var enemyY = [60,145,225];
-var speed = [100,150,200,250,300,350,400];
-var gemX = [DIMENSIONS.TILE.WIDTH, DIMENSIONS.TILE.WIDTH * 2, DIMENSIONS.TILE.WIDTH * 3, DIMENSIONS.TILE.WIDTH * 4];
-var gemY = [DIMENSIONS.TILE.HEIGHT, DIMENSIONS.TILE.HEIGHT * 2, DIMENSIONS.TILE.HEIGHT * 3, DIMENSIONS.TILE.HEIGHT * 4 ];
-var life = 5;
 var allEnemies = [];
 
 //define the classes and RenderMixin to allow shared properties between classes
 var Enemy = function() {
-    this.x = -DIMENSIONS.TILE.WIDTH;
-    this.y = enemyY[Math.floor(Math.random() * 3)];
-    this.enemySpeed = speed[Math.floor(Math.random() * 7)];
-    this.sprite = 'images/enemy-bug.png';
+   this.enemyY = [60,145,225];
+   this.speed = [100,150,200,250,300,350,400];
+   this.x = -DIMENSIONS.TILE.WIDTH;
+   this.y = this.enemyY[Math.floor(Math.random() * 3)];
+   this.enemySpeed = this.speed[Math.floor(Math.random() * 7)];
+   this.sprite = 'images/enemy-bug.png';
 };
 //custom Mixin object that is inherited and shared by Enemy, Player and Gem classes
 var RenderMixin = {
@@ -60,12 +57,12 @@ Score.prototype.render = function() {
   }
 };
 // myLife class displays player's life with initial setting to 5 lives
-var myLife = function() {
+var MyLife = function() {
   this.sprite='images/Heart_small.png';
 };
-myLife.prototype.render = function() {
+MyLife.prototype.render = function() {
   this.x = 0;
-  for (var i = 0; i < life; i++) {
+  for (var i = 0; i < player.life; i++) {
     ctx.drawImage(Resources.get(this.sprite), this.x, 540);
     this.x = this.x + 50;
   }
@@ -81,27 +78,29 @@ Enemy.prototype.update = function(dt) {
     this.x += this.enemySpeed*dt;
     if (this.x > DIMENSIONS.CANVAS.WIDTH ){
       this.x = -DIMENSIONS.TILE.WIDTH;
-      this.y = enemyY[Math.floor(Math.random() * 3)];
-      this.enemySpeed = speed[Math.floor(Math.random() * 7)];
+      this.y = this.enemyY[Math.floor(Math.random() * 3)];
+      this.enemySpeed = this.speed[Math.floor(Math.random() * 7)];
     }
 };
 // checkEnemyCollision makes sure enemy bugs don't bump into each other, if the one behind gets close to the enemy at the front, enemy speeds up
-Enemy.prototype.checkEnemyCollision=function(){
+function checkEnemyCollision(){
   for (var i = 0; i < allEnemies.length; i+=2) {
     if (Math.abs(allEnemies[i].x - allEnemies[i+1].x) < 50 && Math.abs(allEnemies[i].y - allEnemies[i+1].y) < 50 ) {
       this.x = -DIMENSIONS.TILE.WIDTH;
-      this.y = enemyY[Math.floor(Math.random() * 3)];
-      this.enemySpeed = speed[Math.floor(Math.random() * 7)];
+      this.y = enemy.enemyY[Math.floor(Math.random() * 3)];
+      this.enemySpeed = enemy.speed[Math.floor(Math.random() * 7)];
       allEnemies[i].enemySpeed += 30;
     }
   }
-};
+}
 // Gem class displays randomly selected rewards, every time the player collects one, score gets increased by 1 point
 //then as the player colleccts it, the reward gets reset --> the Gem.reset method will be called
 var Gem = function(){
+  this.gemX = [DIMENSIONS.TILE.WIDTH, DIMENSIONS.TILE.WIDTH * 2, DIMENSIONS.TILE.WIDTH * 3, DIMENSIONS.TILE.WIDTH * 4];
+  this.gemY = [DIMENSIONS.TILE.HEIGHT, DIMENSIONS.TILE.HEIGHT * 2, DIMENSIONS.TILE.HEIGHT * 3, DIMENSIONS.TILE.HEIGHT * 4 ];
   this.sprite = rewardsPic[Math.floor(Math.random() * 5)];
-  this.x = gemX[Math.floor(Math.random() * 4)];
-  this.y = gemY[Math.floor(Math.random() * 4)];
+  this.x = this.gemX[Math.floor(Math.random() * 4)];
+  this.y = this.gemY[Math.floor(Math.random() * 4)];
 };
 Gem.prototype = Object.create(RenderMixin);
 Gem.prototype.constructor = Gem;
@@ -118,12 +117,13 @@ Gem.prototype.update = function(dt){
 //reset the Gem: randomly selected Gem will show up, updaing its X and Y positions
 Gem.prototype.reset = function(){
   this.sprite = rewardsPic[Math.floor(Math.random() * 5)];
-  this.x = gemX[Math.floor(Math.random() * 4)];
-  this.y = gemY[Math.floor(Math.random() * 4)];
+  this.x = this.gemX[Math.floor(Math.random() * 4)];
+  this.y = this.gemY[Math.floor(Math.random() * 4)];
 };
 // This is the Player class with randomly selected player image. X and Y positions make sure the player appears at the center of the canvas
 // I use the global Dimensions object to better picture the canvas visually
 var Player = function() {
+  this.life=5;
   this.sprite = charPic[Math.floor(Math.random() * 5)];
   this.x = DIMENSIONS.TILE.WIDTH * 2;
   this.y = DIMENSIONS.TILE.HEIGHT * 5 + DIMENSIONS.PLAYER.PADDING ;
@@ -136,13 +136,13 @@ Player.prototype.update = function(dt) {
 // reduce player's life when reaches water
   if (this.y < DIMENSIONS.PLAYER.PADDING) {
     this.reset();
-    life--;
+    this.life--;
   }
 // when game over, which happens when player life == 0
 // clearRect will clear the entire canvas and change the game-over element to the Game over message
 // game over message will show the player the number of rewards he/she collects
   var msg=document.getElementById("game-over");
-  if (life === 0) {
+  if (this.life === 0) {
       ctx.clearRect(0,0,DIMENSIONS.CANVAS.WIDTH,DIMENSIONS.CANVAS.HEIGHT);
       msg.innerHTML="Game Over!" + "<br>" + "You've earned: " + playerScore.score + " rewards";
       reset();
@@ -151,14 +151,14 @@ Player.prototype.update = function(dt) {
 };
 //checkCollisions method checks to see if the player hits the enemy bug, if so, player life is deducted by 1
 Player.prototype.checkCollisions = function() {
-  for (var i = 0; i < allEnemies.length; i++) {
+  for (var i = 0; i < allEnemies.length; i+=2) {
     if (
       Math.abs(this.x - allEnemies[i].x) < 50 && Math.abs(this.y - allEnemies[i].y) < 50) {
         // after the player is hit, he/she gets reset back to the center of the canvas and life gets deducted
       this.reset();
-      if (life > 0) {
-        life--;
-        document.getElementById('life').innerHTML = 'Life: ' + life;
+      if (this.life > 0) {
+        this.life--;
+        document.getElementById('life').innerHTML = 'Life: ' + this.life;
       }
     }
   }
@@ -171,7 +171,7 @@ Player.prototype.reset=function() {
 // this method checks if player life reaches the end, if so, the global StopGame is set to true
 //gameStatus method gets called by statusEntities function in Engine.js to check the current status of the player
 Player.prototype.gameStatus=function() {
-  if (life == 0 ){
+  if (this.life == 0 ){
     Stopgame=true;
   }
 };
@@ -207,9 +207,10 @@ for (var i = 0; i < 6; i++){
 }
 // creating instances of the class constructors
 var player = new Player();
-var playerLife= new myLife();
+var playerLife= new MyLife();
 var gem = new Gem();
 var playerScore = new Score();
+
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
 document.addEventListener('keyup', function(e) {
