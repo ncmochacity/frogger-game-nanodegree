@@ -52,6 +52,7 @@ var Engine = (function(global) {
          * for the next time this function is called.
          */
         lastTime = now;
+        //calls the statusEntities function
         statusEntities();
         /* Use the browser's requestAnimationFrame function to call this
          * function again as soon as the browser is able to draw another frame.
@@ -59,6 +60,8 @@ var Engine = (function(global) {
           win.requestAnimationFrame(main);
 
     }
+    // this is the custom timer function that times the game for 1 second, when times up, StopGame evaluates to true
+    // stops animation and calls the game reset function below
     function countDown (duration){
         clock=doc.getElementById("countdown");
         time_countdown=duration;
@@ -195,10 +198,8 @@ var Engine = (function(global) {
         playerScore.render();
     }
 
-    /* This function does nothing but it could have been a good place to
-     * handle game reset states - maybe a new game menu or a game over screen
-     * those sorts of things. It's only called once by the init() method.
-     */
+    // when reset gets called, the game board disappears
+    //restart button appears, player can play again
     function reset() {
         doc.getElementById("game").style.display = "none";
         doc.getElementById("restart").style.display = "inline-block";

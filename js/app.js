@@ -41,11 +41,13 @@ var Enemy = function() {
     this.enemySpeed = speed[Math.floor(Math.random() * 7)];
     this.sprite = 'images/enemy-bug.png';
 };
+//custom Mixin object that is inherited and shared by Enemy, Player and Gem classes
 var RenderMixin = {
   render : function(){
    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
  }
 };
+//score class keeps track of the number of points the player gets upon finishing the game
 var Score = function() {
   this.sprite = 'images/Gem_Blue_small.png';
   this.score = 0;
@@ -57,6 +59,7 @@ Score.prototype.render = function() {
     this.x = this.x + 30;
   }
 };
+// myLife class displays player's life with initial setting to 5 lives
 var myLife = function() {
   this.sprite='images/Heart_small.png';
 };
@@ -68,6 +71,7 @@ myLife.prototype.render = function() {
   }
 
 };
+//Enemy class inherits the Mixin Render object, so I don't re-write the exact same rendering code every time
 Enemy.prototype = Object.create(RenderMixin);
 Enemy.prototype.constructor = Enemy;
 
@@ -81,6 +85,7 @@ Enemy.prototype.update = function(dt) {
       this.enemySpeed = speed[Math.floor(Math.random() * 7)];
     }
 };
+// checkEnemyCollision makes sure enemy bugs don't bump into each other, if the one behind gets close to the enemy at the front, enemy speeds up
 Enemy.prototype.checkEnemyCollision=function(){
   for (var i = 0; i < allEnemies.length; i+=2) {
     if (Math.abs(allEnemies[i].x - allEnemies[i+1].x) < 50 && Math.abs(allEnemies[i].y - allEnemies[i+1].y) < 50 ) {
@@ -91,6 +96,8 @@ Enemy.prototype.checkEnemyCollision=function(){
     }
   }
 };
+// Gem class displays randomly selected rewards, every time the player collects one, score gets increased by 1 point
+//then as the player colleccts it, the reward gets reset --> the Gem.reset method will be called
 var Gem = function(){
   this.sprite = rewardsPic[Math.floor(Math.random() * 5)];
   this.x = gemX[Math.floor(Math.random() * 4)];
@@ -108,16 +115,20 @@ Gem.prototype.update = function(dt){
   }
 
 };
+//reset the Gem: randomly selected Gem will show up, updaing its X and Y positions
 Gem.prototype.reset = function(){
   this.sprite = rewardsPic[Math.floor(Math.random() * 5)];
   this.x = gemX[Math.floor(Math.random() * 4)];
   this.y = gemY[Math.floor(Math.random() * 4)];
 };
+// This is the Player class with randomly selected player image. X and Y positions make sure the player appears at the center of the canvas
+// I use the global Dimensions object to better picture the canvas visually
 var Player = function() {
   this.sprite = charPic[Math.floor(Math.random() * 5)];
   this.x = DIMENSIONS.TILE.WIDTH * 2;
   this.y = DIMENSIONS.TILE.HEIGHT * 5 + DIMENSIONS.PLAYER.PADDING ;
 };
+//player inherits the Mixin Render object for the rendering purpose
 Player.prototype = Object.create(RenderMixin);
 Player.prototype.constructor = Player;
 
@@ -127,17 +138,23 @@ Player.prototype.update = function(dt) {
     this.reset();
     life--;
   }
+// when game over, which happens when player life == 0
+// clearRect will clear the entire canvas and change the game-over element to the Game over message
+// game over message will show the player the number of rewards he/she collects
   var msg=document.getElementById("game-over");
   if (life === 0) {
       ctx.clearRect(0,0,DIMENSIONS.CANVAS.WIDTH,DIMENSIONS.CANVAS.HEIGHT);
       msg.innerHTML="Game Over!" + "<br>" + "You've earned: " + playerScore.score + " rewards";
       reset();
+      // calls the game reset function defined in the Engine.js
   }
 };
+//checkCollisions method checks to see if the player hits the enemy bug, if so, player life is deducted by 1
 Player.prototype.checkCollisions = function() {
   for (var i = 0; i < allEnemies.length; i++) {
     if (
       Math.abs(this.x - allEnemies[i].x) < 50 && Math.abs(this.y - allEnemies[i].y) < 50) {
+        // after the player is hit, he/she gets reset back to the center of the canvas and life gets deducted
       this.reset();
       if (life > 0) {
         life--;
@@ -146,10 +163,13 @@ Player.prototype.checkCollisions = function() {
     }
   }
 };
+// player position is reset to the original position at the starting point
 Player.prototype.reset=function() {
   this.x = DIMENSIONS.TILE.WIDTH * 2;
   this.y = DIMENSIONS.TILE.HEIGHT * 5 + DIMENSIONS.PLAYER.PADDING;
 };
+// this method checks if player life reaches the end, if so, the global StopGame is set to true
+//gameStatus method gets called by statusEntities function in Engine.js to check the current status of the player
 Player.prototype.gameStatus=function() {
   if (life == 0 ){
     Stopgame=true;
